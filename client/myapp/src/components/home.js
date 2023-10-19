@@ -1,12 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios'
 import { MdOutlineModeEdit, MdDeleteOutline } from'react-icons/md';
+import { Link} from 'react-router-dom';
+import Swal from 'sweetalert2';
+
 
 
 const Home = () => {
 
     const [Items, setItems] = useState([]);
-
+    
     const getItems=()=>{
         axios({
             method:'GET',
@@ -20,6 +23,26 @@ const Home = () => {
             console.log(err.message);
         });
     };
+
+    const deleteHandler =async(id)=>{
+
+        await Swal.fire({
+            title: 'Apakah Kamu Yakin Ingin Menghapus Item ini?',
+            showCancelButton: true,
+            confirmButtonText: 'Hapus!',    
+          }).then((result) => {
+            if (result.isConfirmed) {
+                axios({
+                    method:'DELETE',
+                    url:`http://localhost:3009/items/delete/${id}`
+                })
+                Swal.fire('Data Sukses Terhapus!', '', 'success')
+            } else if (result.isDenied) {
+                Swal.fire('Data Gagal Terhapus', '', 'info')
+            }
+        })
+        getItems();
+    }
 
     useEffect(() => {
         getItems();
@@ -44,7 +67,7 @@ const Home = () => {
                    {Items.map((item,index)=>{
                     const {id, name, category, price, stock} = item;
                     return(
-                        <tr >
+                        <tr key={id}>
                             <td>{index+1}</td>
                             <td>{name}</td>
                             <td>{category}</td>
@@ -52,16 +75,18 @@ const Home = () => {
                             <td>{stock}</td>
                             <td className='text-center'>
                             <button
-                                // onClick={() => deleteHandler(id)}
+                                onClick={() => deleteHandler(id)}
                                 className="btn btn-sm btn-danger me-4"
                             >
                                 <MdDeleteOutline className="me-1" />
                                 Delete
                             </button>
-                            <button className="btn btn-sm btn-info">
-                                <MdOutlineModeEdit className="me-1" />
-                                Update
-                            </button>
+                            <Link to={'/editItem/'+id}>
+                                <button className="btn btn-sm btn-info">
+                                    <MdOutlineModeEdit className="me-1" />
+                                    Update
+                                </button>
+                            </Link>
                             </td>
                         </tr>
                     )
